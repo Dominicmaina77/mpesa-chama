@@ -252,7 +252,7 @@ if (!file_exists('update_loan.php')) {
 session_start();
 require_once \'DatabaseClass.php\';
 
-if (!isset($_SESSION['user'])) {
+if (!isset($_SESSION["user"])) {
     header(\'Location: Login.php\');
     exit();
 }
