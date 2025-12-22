@@ -86,11 +86,12 @@ class MpesaAPI {
         // Execute the request
         $response = curl_exec($curl);
         $http_code = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+        $error_msg = curl_error($curl);
         curl_close($curl);
-        
+
         // Check if request was successful
         if ($http_code !== 200) {
-            error_log("M-Pesa token request failed with HTTP code: $http_code, Response: $response");
+            error_log("M-Pesa token request failed with HTTP code: $http_code, Response: $response, Error: $error_msg");
             return false;
         }
         
@@ -193,18 +194,20 @@ class MpesaAPI {
         // Execute the request
         $response = curl_exec($curl);
         $http_code = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+        $error_msg = curl_error($curl);
         curl_close($curl);
-        
+
         // Log the request for debugging
         error_log("M-Pesa STK Push request: " . json_encode($payload));
         error_log("M-Pesa STK Push response: " . $response);
-        
+        error_log("M-Pesa STK Push error: " . $error_msg);
+
         // Check if request was successful
         if ($http_code !== 200) {
-            error_log("M-Pesa STK Push failed with HTTP code: $http_code, Response: $response");
+            error_log("M-Pesa STK Push failed with HTTP code: $http_code, Response: $response, Error: $error_msg");
             return [
                 'success' => false,
-                'message' => 'Request failed with HTTP code: ' . $http_code,
+                'message' => 'Request failed with HTTP code: ' . $http_code . '. Details: ' . $response,
                 'response' => $response
             ];
         }
@@ -282,18 +285,20 @@ class MpesaAPI {
         // Execute the request
         $response = curl_exec($curl);
         $http_code = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+        $error_msg = curl_error($curl);
         curl_close($curl);
-        
+
         // Log the request for debugging
         error_log("M-Pesa STK Query request: " . json_encode($payload));
         error_log("M-Pesa STK Query response: " . $response);
-        
+        error_log("M-Pesa STK Query error: " . $error_msg);
+
         // Check if request was successful
         if ($http_code !== 200) {
-            error_log("M-Pesa STK Query failed with HTTP code: $http_code, Response: $response");
+            error_log("M-Pesa STK Query failed with HTTP code: $http_code, Response: $response, Error: $error_msg");
             return [
                 'success' => false,
-                'message' => 'Request failed with HTTP code: ' . $http_code,
+                'message' => 'Request failed with HTTP code: ' . $http_code . '. Details: ' . $response,
                 'response' => $response
             ];
         }
