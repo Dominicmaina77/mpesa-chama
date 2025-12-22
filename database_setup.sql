@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS users (
     full_name VARCHAR(255) NOT NULL,
     email VARCHAR(255) UNIQUE NOT NULL,
     phone_number VARCHAR(20) NOT NULL,
-    id_number VARCHAR(20) UNIQUE NOT NULL,
+    id_number VARCHAR(20) UNIQUE NOT NULL COMMENT 'Kenyan National ID Number (8-10 digits)',
     password_hash VARCHAR(255) NOT NULL,
     role ENUM('admin', 'treasurer', 'member') DEFAULT 'member',
     status ENUM('active', 'inactive') DEFAULT 'active',

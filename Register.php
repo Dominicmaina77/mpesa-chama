@@ -63,6 +63,11 @@ if ($_POST) {
         $errors[] = 'ID number is required.';
     }
 
+    // Validate Kenyan ID number format (8-10 digits)
+    if (!empty($id_number) && !preg_match('/^\d{8,10}$/', $id_number)) {
+        $errors[] = 'ID number must be 8-10 digits.';
+    }
+
     if (empty($password) || strlen($password) < 6) {
         // Check if password is at least 6 characters long
         $errors[] = 'Password must be at least 6 characters long.';
@@ -84,6 +89,15 @@ if ($_POST) {
         $errors[] = 'Email already exists. Please use a different email.';
     }
 
+    // Check if the ID number already exists in the system to prevent duplicates
+    $db = new Database();
+    $db->query("SELECT id FROM users WHERE id_number = :id_number");
+    $db->bind(':id_number', $id_number);
+    $existing_user = $db->single();
+    if ($existing_user) {
+        $errors[] = 'ID number already exists. Please use a different ID number.';
+    }
+
     // Process registration if no validation errors were found
     if (empty($errors)) {
         // Attempt to register the user using the DatabaseClass User method
@@ -102,119 +116,330 @@ if ($_POST) {
 ?>
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Register - Chama Management System</title>
-    <link rel="stylesheet" href="forms.css" />
-  </head>
-  <body>
-    <form action="" method="post" class="container">
-      <span><h1>Create Account</h1></span>
-      <p>Join your Chama management system</p>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
 
-      <?php if (!empty($error)): ?>
-        <div style="color: red; margin: 10px 0; text-align: center;"><?php echo $error; ?></div>
-      <?php endif; ?>
+        body {
+            background: linear-gradient(135deg, #00A651, #008542);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
 
-      <?php if (!empty($success)): ?>
-        <div style="color: green; margin: 10px 0; text-align: center;"><?php echo htmlspecialchars($success); ?></div>
-        <script>
-          // Redirect to login after successful registration
-          setTimeout(function() {
-            window.location.href = 'Login.php';
-          }, 3000);
-        </script>
-      <?php endif; ?>
+        .container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+            width: 100%;
+            max-width: 500px;
+            padding: 40px;
+            position: relative;
+            overflow: hidden;
+        }
 
-      <div class="input-type">
-        <label for="name">Full Name</label><br />
-        <input
-          type="text"
-          id="name"
-          name="name"
-          placeholder="Enter your full name"
-          required
-          value="<?php echo isset($_POST['name']) ? htmlspecialchars($_POST['name']) : ''; ?>"
-        />
+        .container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(90deg, #00A651, #008542);
+        }
 
-        <label for="email" class="input-type">Email Address</label>
-        <input
-          type="email"
-          id="email"
-          name="email"
-          placeholder="yourname@gmail.com"
-          required
-          value="<?php echo isset($_POST['email']) ? htmlspecialchars($_POST['email']) : ''; ?>"
-        />
-      </div>
+        h1 {
+            text-align: center;
+            color: #00A651;
+            margin-bottom: 10px;
+            font-size: 2.2rem;
+        }
 
-      <div class="input-type">
-        <label for="number" class="input-type">Phone Number</label>
-        <input
-          type="tel"
-          id="number"
-          name="number"
-          placeholder="254XXXXXXXXX"
-          required
-          value="<?php echo isset($_POST['number']) ? htmlspecialchars($_POST['number']) : ''; ?>"
-        />
+        p {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1rem;
+        }
 
-        <label for="id" class="input-type">ID Number</label>
-        <input type="tel" id="id" name="id" placeholder="12345678" required
-          value="<?php echo isset($_POST['id']) ? htmlspecialchars($_POST['id']) : ''; ?>"
-        />
-      </div>
-      <br />
+        .input-group {
+            margin-bottom: 20px;
+        }
 
-      <label for="register">Register As</label>
-      <select name="register" id="register" required>
-        <option value="member" <?php echo (isset($_POST['register']) && $_POST['register'] === 'member') ? 'selected' : ''; ?>>Member</option>
-        <option value="treasurer" <?php echo (isset($_POST['register']) && $_POST['register'] === 'treasurer') ? 'selected' : ''; ?>>Treasurer</option>
-        <option value="admin" <?php echo (isset($_POST['register']) && $_POST['register'] === 'admin') ? 'selected' : ''; ?>>Admin</option>
-      </select>
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+            font-size: 0.95rem;
+        }
 
-      <div class="input-type">
-        <label for="password" class="input-type">Password</label>
-        <input
-          type="password"
-          id="password"
-          name="password"
-          placeholder="Enter your password"
-          required
-        />
+        input, select {
+            width: 100%;
+            padding: 14px;
+            border: 2px solid #e1e1e1;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
 
-        <label for="confirm_password" class="input-type"
-          >Confirm Password</label
-        >
-        <input
-          type="password"
-          id="confirm_password"
-          name="confirm_password"
-          placeholder="Confirm your password"
-          required
-        />
-      </div>
+        input:focus, select:focus {
+            outline: none;
+            border-color: #00A651;
+            box-shadow: 0 0 0 3px rgba(0, 166, 81, 0.1);
+        }
 
-      <input type="checkbox" name="terms" id="terms" class="checkbox" value="1" required />
-      <label for="terms"
-        >I agree to the <a href="">Terms of Service</a> and
-        <a href="">Privacy Policy</a>
-      </label>
+        .form-row {
+            display: flex;
+            gap: 15px;
+        }
 
-      <button type="submit" class="mybutton">Create Account</button>
+        .form-row .input-group {
+            flex: 1;
+        }
 
-      <footer>
-        <p>Already have an account? <a href="Login.php">Sign In</a></p>
-        <br />
+        .checkbox-container {
+            display: flex;
+            align-items: flex-start;
+            margin: 20px 0;
+        }
 
-        <p>
-          <small>
-            Secure Chama Management System <br />
-            Powered by M-Pesa Integration
-          </small>
-        </p>
-      </footer>
-    </form>
-  </body>
+        .checkbox-container input {
+            width: auto;
+            margin-right: 10px;
+            margin-top: 5px;
+        }
+
+        .checkbox-container label {
+            margin-bottom: 0;
+            color: #555;
+            font-size: 0.9rem;
+        }
+
+        .checkbox-container a {
+            color: #00A651;
+            text-decoration: none;
+        }
+
+        .checkbox-container a:hover {
+            text-decoration: underline;
+        }
+
+        .mybutton {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #00A651, #008542);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+
+        .mybutton:hover {
+            background: linear-gradient(135deg, #008542, #006431);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 166, 81, 0.3);
+        }
+
+        .error {
+            background-color: #ffebee;
+            color: #c62828;
+            padding: 12px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border-left: 4px solid #c62828;
+            font-size: 0.95rem;
+        }
+
+        .success {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+            padding: 12px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border-left: 4px solid #2e7d32;
+            font-size: 0.95rem;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 25px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }
+
+        footer p {
+            margin: 5px 0;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        footer a {
+            color: #00A651;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
+
+        .id-info {
+            font-size: 0.8rem;
+            color: #888;
+            margin-top: 3px;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 25px;
+            }
+
+            .form-row {
+                flex-direction: column;
+                gap: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Create Account</h1>
+        <p>Join your Chama management system</p>
+
+        <?php if (!empty($error)): ?>
+            <div class="error"><?php echo $error; ?></div>
+        <?php endif; ?>
+
+        <?php if (!empty($success)): ?>
+            <div class="success"><?php echo htmlspecialchars($success); ?></div>
+            <script>
+                // Redirect to login after successful registration
+                setTimeout(function() {
+                    window.location.href = 'Login.php';
+                }, 3000);
+            </script>
+        <?php endif; ?>
+
+        <form action="" method="post">
+            <div class="input-group">
+                <label for="name">Full Name</label>
+                <input
+                    type="text"
+                    id="name"
+                    name="name"
+                    placeholder="Enter your full name"
+                    required
+                    value="<?php echo isset($_POST['name']) ? htmlspecialchars($_POST['name']) : ''; ?>"
+                />
+            </div>
+
+            <div class="input-group">
+                <label for="email">Email Address</label>
+                <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    placeholder="yourname@gmail.com"
+                    required
+                    value="<?php echo isset($_POST['email']) ? htmlspecialchars($_POST['email']) : ''; ?>"
+                />
+            </div>
+
+            <div class="form-row">
+                <div class="input-group">
+                    <label for="number">Phone Number</label>
+                    <input
+                        type="tel"
+                        id="number"
+                        name="number"
+                        placeholder="254XXXXXXXXX"
+                        required
+                        value="<?php echo isset($_POST['number']) ? htmlspecialchars($_POST['number']) : ''; ?>"
+                    />
+                </div>
+
+                <div class="input-group">
+                    <label for="id">ID Number <span class="id-info">(8-10 digits)</span></label>
+                    <input
+                        type="tel"
+                        id="id"
+                        name="id"
+                        placeholder="12345678"
+                        required
+                        pattern="[0-9]{8,10}"
+                        value="<?php echo isset($_POST['id']) ? htmlspecialchars($_POST['id']) : ''; ?>"
+                    />
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label for="register">Register As</label>
+                <select name="register" id="register" required>
+                    <option value="member" <?php echo (isset($_POST['register']) && $_POST['register'] === 'member') ? 'selected' : ''; ?>>Member</option>
+                    <option value="treasurer" <?php echo (isset($_POST['register']) && $_POST['register'] === 'treasurer') ? 'selected' : ''; ?>>Treasurer</option>
+                    <option value="admin" <?php echo (isset($_POST['register']) && $_POST['register'] === 'admin') ? 'selected' : ''; ?>>Admin</option>
+                </select>
+            </div>
+
+            <div class="form-row">
+                <div class="input-group">
+                    <label for="password">Password</label>
+                    <input
+                        type="password"
+                        id="password"
+                        name="password"
+                        placeholder="Enter your password"
+                        required
+                    />
+                </div>
+
+                <div class="input-group">
+                    <label for="confirm_password">Confirm Password</label>
+                    <input
+                        type="password"
+                        id="confirm_password"
+                        name="confirm_password"
+                        placeholder="Confirm your password"
+                        required
+                    />
+                </div>
+            </div>
+
+            <div class="checkbox-container">
+                <input type="checkbox" name="terms" id="terms" value="1" required />
+                <label for="terms">
+                    I agree to the <a href="#">Terms of Service</a> and
+                    <a href="#">Privacy Policy</a>
+                </label>
+            </div>
+
+            <button type="submit" class="mybutton">Create Account</button>
+        </form>
+
+        <footer>
+            <p>Already have an account? <a href="Login.php">Sign In</a></p>
+            <p>
+                <small>
+                    Secure Chama Management System <br />
+                    Powered by M-Pesa Integration
+                </small>
+            </p>
+        </footer>
+    </div>
+</body>
 </html>
