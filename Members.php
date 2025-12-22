@@ -101,63 +101,282 @@ foreach ($contributions as $c) {
     <title>Member Dashboard - Chama Management System</title>
     <link rel="stylesheet" href="dash-mod.css">
     <style>
-        .dashboard-content {
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f7fa;
+            color: #333;
+        }
+
+        .container {
+            display: flex;
+        }
+
+        aside {
+            width: 260px;
+            background: linear-gradient(180deg, #00A651, #008542);
+            color: white;
+            height: 100vh;
+            position: fixed;
+            overflow-y: auto;
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+
+        .top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             padding: 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: white;
+            text-decoration: none;
+        }
+
+        .close {
+            display: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        .sidebar a {
+            display: flex;
+            align-items: center;
+            padding: 15px 20px;
+            text-decoration: none;
+            color: rgba(255,255,255,0.8);
+            transition: all 0.3s ease;
+            border-left: 4px solid transparent;
+        }
+
+        .sidebar a:hover, .sidebar a.active {
+            background: rgba(255,255,255,0.1);
+            color: white;
+            border-left: 4px solid #fff;
+        }
+
+        .sidebar a span {
+            margin-right: 12px;
+            font-size: 1.2rem;
+        }
+
+        .dashboard-content {
+            flex: 1;
+            margin-left: 260px;
+            padding: 30px;
+        }
+
+        h1 {
+            color: #00A651;
+            margin-bottom: 10px;
+            font-size: 2rem;
+        }
+
+        h2 {
+            color: #00A651;
+            margin: 25px 0 15px 0;
+            font-size: 1.5rem;
+            border-bottom: 2px solid #00A651;
+            padding-bottom: 8px;
         }
 
         .summary-cards {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
         }
 
         .summary-card {
-            background-color: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            background: linear-gradient(135deg, #ffffff, #f8f9fa);
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            text-align: center;
+            transition: transform 0.3s ease;
+            border: 1px solid #e9ecef;
+        }
+
+        .summary-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.12);
         }
 
         .summary-card h3 {
             margin-top: 0;
             color: #00A651;
+            font-size: 1rem;
+            margin-bottom: 10px;
         }
 
         .summary-card h2 {
             margin-bottom: 0;
+            font-size: 2rem;
+            color: #2c3e50;
         }
 
         .data-table {
             width: 100%;
             border-collapse: collapse;
             background-color: white;
-            border-radius: 8px;
+            border-radius: 10px;
             overflow: hidden;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            margin-bottom: 30px;
         }
 
         .data-table th, .data-table td {
-            padding: 12px;
+            padding: 15px;
             text-align: left;
-            border-bottom: 1px solid #ddd;
+            border-bottom: 1px solid #eee;
         }
 
         .data-table th {
-            background-color: #00A651;
+            background: linear-gradient(135deg, #00A651, #008542);
             color: white;
+            font-weight: 600;
+        }
+
+        .data-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .data-table tr:hover {
+            background-color: #f8f9fa;
         }
 
         .status-pending {
-            color: orange;
+            color: #ffc107;
+            font-weight: 500;
         }
 
         .status-approved, .status-confirmed, .status-paid {
-            color: green;
+            color: #28a745;
+            font-weight: 500;
         }
 
         .status-rejected, .status-failed {
-            color: red;
+            color: #dc3545;
+            font-weight: 500;
+        }
+
+        .status-active {
+            color: #28a745;
+            font-weight: 500;
+        }
+
+        .status-inactive {
+            color: #dc3545;
+            font-weight: 500;
+        }
+
+        .profile-section, .settings-section {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            margin-top: 30px;
+        }
+
+        .profile-info p {
+            margin: 10px 0;
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .profile-info p:last-child {
+            border-bottom: none;
+        }
+
+        .profile-info strong {
+            display: inline-block;
+            width: 150px;
+            color: #00A651;
+        }
+
+        #changePasswordForm {
+            max-width: 500px;
+            margin-top: 20px;
+        }
+
+        #changePasswordForm div {
+            margin-bottom: 20px;
+        }
+
+        #changePasswordForm label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #333;
+        }
+
+        #changePasswordForm input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 1rem;
+        }
+
+        #changePasswordForm button {
+            background: linear-gradient(135deg, #00A651, #008542);
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        #changePasswordForm button:hover {
+            background: linear-gradient(135deg, #008542, #006431);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 166, 81, 0.3);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+
+            aside {
+                width: 100%;
+                height: auto;
+                position: relative;
+            }
+
+            .close {
+                display: block;
+            }
+
+            .sidebar {
+                display: none;
+            }
+
+            .sidebar.active {
+                display: block;
+            }
+
+            .dashboard-content {
+                margin-left: 0;
+                padding: 20px;
+            }
+
+            .summary-cards {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
@@ -343,9 +562,9 @@ foreach ($contributions as $c) {
             <?php endif; ?>
         </div>
 
-        <div id="profile" style="margin-top: 30px;">
+        <div id="profile" class="profile-section">
             <h2>My Profile</h2>
-            <div class="data-table" style="padding: 20px;">
+            <div class="profile-info">
                 <h3>Personal Information</h3>
                 <p><strong>Name:</strong> <?php echo htmlspecialchars($user['full_name']); ?></p>
                 <p><strong>Email:</strong> <?php echo htmlspecialchars($user['email']); ?></p>
@@ -357,24 +576,24 @@ foreach ($contributions as $c) {
             </div>
         </div>
 
-        <div id="settings" style="margin-top: 30px;">
+        <div id="settings" class="settings-section">
             <h2>Account Settings</h2>
-            <div class="data-table" style="padding: 20px;">
+            <div class="settings-content">
                 <h3>Change Password</h3>
-                <form id="changePasswordForm" method="post" style="max-width: 400px;">
-                    <div style="margin-bottom: 15px;">
-                        <label for="current_password" style="display: block; margin-bottom: 5px;">Current Password:</label>
-                        <input type="password" id="current_password" name="current_password" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;" required>
+                <form id="changePasswordForm" method="post">
+                    <div>
+                        <label for="current_password">Current Password:</label>
+                        <input type="password" id="current_password" name="current_password" required>
                     </div>
-                    <div style="margin-bottom: 15px;">
-                        <label for="new_password" style="display: block; margin-bottom: 5px;">New Password:</label>
-                        <input type="password" id="new_password" name="new_password" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;" required>
+                    <div>
+                        <label for="new_password">New Password:</label>
+                        <input type="password" id="new_password" name="new_password" required>
                     </div>
-                    <div style="margin-bottom: 15px;">
-                        <label for="confirm_new_password" style="display: block; margin-bottom: 5px;">Confirm New Password:</label>
-                        <input type="password" id="confirm_new_password" name="confirm_new_password" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;" required>
+                    <div>
+                        <label for="confirm_new_password">Confirm New Password:</label>
+                        <input type="password" id="confirm_new_password" name="confirm_new_password" required>
                     </div>
-                    <button type="submit" style="background-color: #00A651; color: white; padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer;">Change Password</button>
+                    <button type="submit">Change Password</button>
                 </form>
 
                 <h3 style="margin-top: 30px;">Account Status</h3>
