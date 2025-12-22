@@ -104,6 +104,9 @@ foreach ($contributions as $c) {
         <?php endif; ?>
         <a href="Loans.php">Loans</a>
         <a href="Contributions.php" class="<?php echo (basename($_SERVER['PHP_SELF']) === 'Contributions.php') ? 'active' : ''; ?>">Contributions</a>
+        <?php if ($role === 'admin' || $role === 'treasurer'): ?>
+        <a href="#record-contribution">Record Contribution</a>
+        <?php endif; ?>
         <a href="Fines.php">Fines</a>
         <a href="logout.php">Logout</a>
       </nav>
@@ -136,6 +139,98 @@ foreach ($contributions as $c) {
           <p class="amount warning">KES <?php echo number_format($pending_contributions, 2); ?></p>
         </div>
       </section>
+
+      <?php if ($role === 'admin' || $role === 'treasurer'): ?>
+      <!-- Record Contribution Form -->
+      <section class="content" id="record-contribution">
+        <h2>Record New Contribution</h2>
+
+        <?php
+        $message = '';
+        if ($_POST && isset($_POST['record_contribution'])) {
+            $member_id = (int)$_POST['member_id'];
+            $amount = (float)$_POST['amount'];
+            $payment_method = $_POST['payment_method'];
+            $mpesa_code = !empty($_POST['mpesa_code']) ? $_POST['mpesa_code'] : null;
+
+            $contribution = new Contribution();
+            if ($contribution->addContribution($member_id, $amount, $payment_method, $mpesa_code)) {
+                $message = "Contribution recorded successfully!";
+                // Refresh contributions after adding new one
+                $contributions = $contribution->getAllContributions();
+
+                // Recalculate summary data
+                $total_contributions = 0;
+                $confirmed_contributions = 0;
+                $pending_contributions = 0;
+
+                foreach ($contributions as $c) {
+                    $total_contributions += $c['amount'];
+                    if ($c['status'] === 'confirmed') {
+                        $confirmed_contributions += $c['amount'];
+                    } elseif ($c['status'] === 'pending') {
+                        $pending_contributions += $c['amount'];
+                    }
+                }
+            } else {
+                $message = "Failed to record contribution.";
+            }
+        }
+        ?>
+
+        <?php if (!empty($message)): ?>
+        <div style="padding: 10px; margin-bottom: 15px; border-radius: 4px;
+                    <?php echo strpos($message, 'successfully') ? 'background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb;' : 'background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb;'; ?>">
+            <?php echo htmlspecialchars($message); ?>
+        </div>
+        <?php endif; ?>
+
+        <form method="post" style="margin-bottom: 30px;">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 20px;">
+                <div>
+                    <label for="member_id" style="display: block; margin-bottom: 5px; font-weight: bold;">Select Member:</label>
+                    <select name="member_id" id="member_id" required style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
+                        <option value="">Select a member</option>
+                        <?php
+                        $user_obj = new User();
+                        $members = $user_obj->getAllUsersByRole('member');
+                        foreach ($members as $member):
+                        ?>
+                        <option value="<?php echo $member['id']; ?>">
+                            <?php echo htmlspecialchars($member['full_name'] . ' (' . ($member['member_number'] ?? 'N/A') . ')'); ?>
+                        </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+
+                <div>
+                    <label for="amount" style="display: block; margin-bottom: 5px; font-weight: bold;">Amount (KES):</label>
+                    <input type="number" name="amount" id="amount" step="0.01" min="0" required
+                           style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
+                </div>
+
+                <div>
+                    <label for="payment_method" style="display: block; margin-bottom: 5px; font-weight: bold;">Payment Method:</label>
+                    <select name="payment_method" id="payment_method" required style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
+                        <option value="mpesa">M-Pesa</option>
+                        <option value="cash">Cash</option>
+                        <option value="bank_transfer">Bank Transfer</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label for="mpesa_code" style="display: block; margin-bottom: 5px; font-weight: bold;">M-Pesa Code (if applicable):</label>
+                    <input type="text" name="mpesa_code" id="mpesa_code"
+                           style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
+                </div>
+            </div>
+
+            <button type="submit" name="record_contribution" style="background: linear-gradient(135deg, #00A651, #008542); color: white; padding: 12px 25px; border: none; border-radius: 6px; cursor: pointer; font-size: 1rem; font-weight: 500;">
+                Record Contribution
+            </button>
+        </form>
+      </section>
+      <?php endif; ?>
 
       <!-- tables -->
       <section class="content">
@@ -187,6 +282,23 @@ foreach ($contributions as $c) {
           button.innerHTML = '🌙';
         }
       }
+
+      // Smooth scrolling for anchor links
+      document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+          anchor.addEventListener('click', function (e) {
+              e.preventDefault();
+
+              const targetId = this.getAttribute('href');
+              const targetElement = document.querySelector(targetId);
+
+              if (targetElement) {
+                  window.scrollTo({
+                      top: targetElement.offsetTop - 100,
+                      behavior: 'smooth'
+                  });
+              }
+          });
+      });
     </script>
   </body>
 </html>
