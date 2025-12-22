@@ -120,81 +120,9 @@ if ($_POST && isset($_POST['check_status'])) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Make Payment - Chama Management System</title>
-    <link rel="stylesheet" href="dash-mod.css">
-    <style>
-        .payment-container {
-            max-width: 600px;
-            margin: 20px auto;
-            padding: 20px;
-            background-color: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        
-        .form-group {
-            margin-bottom: 20px;
-        }
-        
-        label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-        }
-        
-        input[type="number"], input[type="text"], textarea {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            box-sizing: border-box;
-        }
-        
-        button {
-            background-color: #00A651;
-            color: white;
-            padding: 12px 20px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 16px;
-        }
-        
-        button:hover {
-            background-color: #008542;
-        }
-        
-        .status-card {
-            background-color: #f8f9fa;
-            padding: 15px;
-            border-radius: 8px;
-            margin-top: 20px;
-        }
-        
-        .message {
-            padding: 10px;
-            border-radius: 4px;
-            margin-bottom: 15px;
-        }
-        
-        .message.error {
-            background-color: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
-        
-        .message.success {
-            background-color: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-        
-        .payment-info {
-            background-color: #e7f3ff;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-        }
-    </style>
+    <link rel="stylesheet" href="payment.css">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded" rel="stylesheet">
+
 </head>
 <body>
     <div class="container">
@@ -210,27 +138,27 @@ if ($_POST && isset($_POST['check_status'])) {
 
             <div class="sidebar">
                 <a href="Members.php">
-                    <span class="material-icons-sharp">grid_view</span>
+                    <span class="material-symbols-rounded">dashboard</span>
                     <h3>Dashboard</h3>
                 </a>
                 <a href="Contributions.php">
-                    <span class="material-icons-sharp">grid_view</span>
+                    <span class="material-symbols-rounded">payments</span>
                     <h3>My Contributions</h3>
                 </a>
                 <a href="payment.php" class="active">
-                    <span class="material-icons-sharp">grid_view</span>
+                    <span class="material-symbols-rounded">payments</span>
                     <h3>Make Payment</h3>
                 </a>
                 <a href="Loans.php">
-                    <span class="material-icons-sharp">grid_view</span>
+                    <span class="material-symbols-rounded">receipt_long</span>
                     <h3>My Loans</h3>
                 </a>
                 <a href="Fines.php">
-                    <span class="material-icons-sharp">grid_view</span>
+                    <span class="material-symbols-rounded">warning</span>
                     <h3>My Fines</h3>
                 </a>
                 <a href="logout.php">
-                    <span class="material-icons-sharp">grid_view</span>
+                    <span class="material-symbols-rounded">logout</span>
                     <h3>Logout</h3>
                 </a>
             </div>
