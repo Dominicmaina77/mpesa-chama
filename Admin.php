@@ -264,15 +264,11 @@ $all_users = $admin->getAllUsersByRole();
                     <div style="flex: 1; background-color: #f8f9fa; padding: 15px; border-radius: 5px; border-left: 4px solid #28a745;">
                         <h3>Pending Contributions</h3>
                         <?php
-                        // Count pending contributions
-                        $contribution = new Contribution();
-                        $all_contributions = $contribution->getAllContributions();
-                        $pending_contributions = 0;
-                        foreach ($all_contributions as $c) {
-                            if ($c['status'] === 'pending') {
-                                $pending_contributions++;
-                            }
-                        }
+                        // Get all pending contributions with member details
+                        $db = new Database();
+                        $db->query('SELECT c.*, m.member_number, u.full_name FROM contributions c JOIN members m ON c.member_id = m.id JOIN users u ON m.user_id = u.id WHERE c.status = "pending" ORDER BY c.contribution_date DESC');
+                        $all_contributions = $db->resultSet();
+                        $pending_contributions = count($all_contributions);
                         ?>
                         <p style="font-size: 24px; font-weight: bold; color: #28a745;"><?php echo $pending_contributions; ?></p>
                         <a href="Contributions.php" style="color: #28a745; text-decoration: none;">View Contributions &rarr;</a>
@@ -282,15 +278,11 @@ $all_users = $admin->getAllUsersByRole();
                     <div style="flex: 1; background-color: #f8f9fa; padding: 15px; border-radius: 5px; border-left: 4px solid #ffc107;">
                         <h3>Pending Fines</h3>
                         <?php
-                        // Count pending fines
-                        $fine = new Fine();
-                        $all_fines = $fine->getAllFines();
-                        $pending_fines = 0;
-                        foreach ($all_fines as $f) {
-                            if ($f['status'] === 'pending') {
-                                $pending_fines++;
-                            }
-                        }
+                        // Get all pending fines with member details
+                        $db = new Database();
+                        $db->query('SELECT f.*, m.member_number, u.full_name FROM fines f JOIN members m ON f.member_id = m.id JOIN users u ON m.user_id = u.id WHERE f.status = "pending" ORDER BY f.date_imposed DESC');
+                        $all_fines = $db->resultSet();
+                        $pending_fines = count($all_fines);
                         ?>
                         <p style="font-size: 24px; font-weight: bold; color: #ffc107;"><?php echo $pending_fines; ?></p>
                         <a href="Fines.php" style="color: #ffc107; text-decoration: none;">View Fines &rarr;</a>
@@ -321,7 +313,76 @@ $all_users = $admin->getAllUsersByRole();
                                 <td><?php echo htmlspecialchars($l['date_applied']); ?></td>
                                 <td><?php echo $l['duration_months']; ?> months</td>
                                 <td>
-                                    <a href="Loans.php" class="btn btn-edit">Review</a>
+                                    <button onclick="updateApproval('loan', <?php echo $l['id']; ?>, 'approve')" class="btn btn-edit">Approve</button>
+                                    <button onclick="updateApproval('loan', <?php echo $l['id']; ?>, 'reject')" class="btn btn-delete">Reject</button>
+                                </td>
+                            </tr>
+                            <?php endif; ?>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+                <?php endif; ?>
+
+                <!-- Detailed Pending Contributions Table -->
+                <?php if ($pending_contributions > 0): ?>
+                <h3 style="margin-top: 30px;">Pending Contributions</h3>
+                <table class="users-table">
+                    <thead>
+                        <tr>
+                            <th>Member Name</th>
+                            <th>Member Number</th>
+                            <th>Amount</th>
+                            <th>Date</th>
+                            <th>Payment Method</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($all_contributions as $c): ?>
+                            <?php if ($c['status'] === 'pending'): ?>
+                            <tr>
+                                <td><?php echo htmlspecialchars($c['full_name']); ?></td>
+                                <td><?php echo htmlspecialchars($c['member_number']); ?></td>
+                                <td>KES <?php echo number_format($c['amount'], 2); ?></td>
+                                <td><?php echo htmlspecialchars($c['contribution_date']); ?></td>
+                                <td><?php echo htmlspecialchars($c['payment_method']); ?></td>
+                                <td>
+                                    <button onclick="updateApproval('contribution', <?php echo $c['id']; ?>, 'confirm')" class="btn btn-edit">Confirm</button>
+                                    <button onclick="updateApproval('contribution', <?php echo $c['id']; ?>, 'cancel')" class="btn btn-delete">Cancel</button>
+                                </td>
+                            </tr>
+                            <?php endif; ?>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+                <?php endif; ?>
+
+                <!-- Detailed Pending Fines Table -->
+                <?php if ($pending_fines > 0): ?>
+                <h3 style="margin-top: 30px;">Pending Fines</h3>
+                <table class="users-table">
+                    <thead>
+                        <tr>
+                            <th>Member Name</th>
+                            <th>Member Number</th>
+                            <th>Amount</th>
+                            <th>Reason</th>
+                            <th>Date Imposed</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($all_fines as $f): ?>
+                            <?php if ($f['status'] === 'pending'): ?>
+                            <tr>
+                                <td><?php echo htmlspecialchars($f['full_name']); ?></td>
+                                <td><?php echo htmlspecialchars($f['member_number']); ?></td>
+                                <td>KES <?php echo number_format($f['amount'], 2); ?></td>
+                                <td><?php echo htmlspecialchars($f['reason']); ?></td>
+                                <td><?php echo htmlspecialchars($f['date_imposed']); ?></td>
+                                <td>
+                                    <button onclick="updateApproval('fine', <?php echo $f['id']; ?>, 'pay')" class="btn btn-edit">Mark Paid</button>
+                                    <button onclick="updateApproval('fine', <?php echo $f['id']; ?>, 'waive')" class="btn btn-delete">Waive</button>
                                 </td>
                             </tr>
                             <?php endif; ?>
@@ -487,6 +548,42 @@ $all_users = $admin->getAllUsersByRole();
             const modal = document.getElementById('editUserModal');
             if (event.target === modal) {
                 closeModal();
+            }
+        }
+
+        // Function to update approval status
+        function updateApproval(type, id, action) {
+            const actionText = {
+                'approve': 'approve',
+                'reject': 'reject',
+                'confirm': 'confirm',
+                'cancel': 'cancel',
+                'pay': 'mark as paid',
+                'waive': 'waive'
+            }[action] || action;
+
+            if (confirm(`Are you sure you want to ${actionText} this ${type}?`)) {
+                fetch('update_approval.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `type=${type}&action=${action}&id=${id}`
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert(data.message);
+                        // Reload the page to update the tables
+                        location.reload();
+                    } else {
+                        alert('Error: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred while updating the approval status.');
+                });
             }
         }
     </script>
