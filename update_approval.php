@@ -43,8 +43,12 @@ $approval_type = $_POST['type'] ?? $_GET['type'] ?? '';
 $action = $_POST['action'] ?? $_GET['action'] ?? '';
 $item_id = $_POST['id'] ?? $_GET['id'] ?? '';
 
+// Debug logging
+error_log("Update approval request: type=$approval_type, action=$action, id=$item_id");
+
 if (empty($approval_type) || empty($action) || empty($item_id)) {
     http_response_code(400);
+    error_log("Missing required parameters: type=$approval_type, action=$action, id=$item_id");
     echo json_encode(['success' => false, 'message' => 'Missing required parameters']);
     exit();
 }
@@ -242,6 +246,7 @@ function updateFineStatus($fine_id, $status) {
     
     return $db->execute();
 }
+
 /**
  * Create repayment schedule for an approved loan
  */
@@ -254,6 +259,7 @@ function createLoanRepaymentSchedule($loan_id) {
     $loan = $db->single();
 
     if (!$loan) {
+        error_log("Loan not found for ID: $loan_id");
         return false;
     }
 
@@ -277,7 +283,10 @@ function createLoanRepaymentSchedule($loan_id) {
         $db->bind(':due_date', $due_date);
         $db->bind(':member_id', $loan['member_id']);
 
-        $db->execute();
+        $result = $db->execute();
+        if (!$result) {
+            error_log("Failed to create repayment schedule for loan: $loan_id");
+        }
     }
 
     return true;

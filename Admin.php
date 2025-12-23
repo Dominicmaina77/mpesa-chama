@@ -579,26 +579,37 @@ $all_users = $admin->getAllUsersByRole();
             }[action] || action;
 
             if (confirm(`Are you sure you want to ${actionText} this ${type}?`)) {
+                const params = new URLSearchParams();
+                params.append('type', type);
+                params.append('action', action);
+                params.append('id', id);
+
                 fetch('update_approval.php', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/x-www-form-urlencoded',
                     },
-                    body: `type=${type}&action=${action}&id=${id}`
+                    body: params
                 })
-                .then(response => response.json())
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
                 .then(data => {
+                    console.log('Server response:', data);
                     if (data.success) {
                         alert(data.message);
                         // Reload the page to update the tables
                         location.reload();
                     } else {
-                        alert('Error: ' + data.message);
+                        alert('Error: ' + (data.message || 'Unknown error occurred'));
                     }
                 })
                 .catch(error => {
                     console.error('Error:', error);
-                    alert('An error occurred while updating the approval status.');
+                    alert('An error occurred while updating the approval: ' + error.message);
                 });
             }
         }
